@@ -1,0 +1,44 @@
+{
+  "id": "/",
+  "name": "ALMAS-SHOP · EASY SOLUTION",
+  "short_name": "ALMAS-SHOP",
+  "description": "Marketplace B2C de Moçambique. Mais que uma loja, é a sua solução!",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#051F20",
+  "theme_color": "#0B2B26",
+  "categories": ["shopping", "business"],
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Marketplace",
+      "url": "/",
+      "icons": [{ "src": "/logo.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Meus Pedidos",
+      "url": "/pedidos",
+      "icons": [{ "src": "/logo.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Painel do Vendedor",
+      "url": "/vendedor",
+      "icons": [{ "src": "/logo.svg", "sizes": "96x96" }]
+    }
+  ]
+}

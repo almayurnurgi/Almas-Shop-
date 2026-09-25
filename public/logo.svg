@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8EB69B" />
+      <stop offset="100%" stop-color="#235347" />
+    </linearGradient>
+    <linearGradient id="cartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DAF1DE" />
+      <stop offset="100%" stop-color="#FFFFFF" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#051F20" flood-opacity="0.4" />
+    </filter>
+  </defs>
+  
+  <!-- Rounded Background -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+  
+  <!-- Stylized Shopping Cart & Sparkle -->
+  <g filter="url(#shadow)" transform="translate(64, 70)">
+    <!-- Cart wheels -->
+    <circle cx="120" cy="270" r="28" fill="url(#cartGrad)" />
+    <circle cx="120" cy="270" r="12" fill="#0B2B26" />
+    <circle cx="260" cy="270" r="28" fill="url(#cartGrad)" />
+    <circle cx="260" cy="270" r="12" fill="#0B2B26" />
+
+    <!-- Cart body lines -->
+    <path d="M40 70 L90 70 L140 210 L280 210 L330 110 L115 110" 
+          fill="none" 
+          stroke="url(#cartGrad)" 
+          stroke-width="26" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+    
+    <!-- Bag / Diamond Solution inside cart -->
+    <polygon points="175,100 245,100 270,165 150,165" fill="#DAF1DE" opacity="0.9" />
+    <path d="M190 100 Q210 70 230 100" fill="none" stroke="#0B2B26" stroke-width="8" stroke-linecap="round"/>
+
+    <!-- Solution Flash / Sparkle -->
+    <path d="M310 40 Q325 55 340 55 Q325 55 310 70 Q325 55 340 55 Z" fill="#DAF1DE" />
+    <circle cx="340" cy="55" r="4" fill="#FFFFFF" />
+  </g>
+
+  <!-- Typography -->
+  <text x="256" y="415" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="46" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="3">ALMAS-SHOP</text>
+  <text x="256" y="455" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="20" font-weight="700" fill="#DAF1DE" text-anchor="middle" letter-spacing="7">EASY SOLUTION</text>
+</svg>
