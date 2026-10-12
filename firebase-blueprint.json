@@ -1,0 +1,175 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User account in ALMAS-SHOP marketplace (Customer, Vendor, Admin, Super Admin)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["CUSTOMER", "VENDOR", "ADMIN", "SUPER_ADMIN"] },
+        "phone": { "type": "string" },
+        "isBanned": { "type": "boolean" },
+        "banReason": { "type": "string" },
+        "vendorStatus": { "type": "string", "enum": ["NONE", "PENDING_APPROVAL", "APPROVED", "REJECTED"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "email", "name", "role"]
+    },
+    "Store": {
+      "title": "Store",
+      "description": "Vendor storefront on ALMAS-SHOP",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "slogan": { "type": "string" },
+        "description": { "type": "string" },
+        "logo": { "type": "string" },
+        "banner": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "address": { "type": "string" },
+        "rating": { "type": "number" },
+        "salesCount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "vendorId", "name", "slug"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Product catalog item (physical or digital)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "storeId": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "type": { "type": "string", "enum": ["PHYSICAL", "DIGITAL"] },
+        "regularPrice": { "type": "number" },
+        "salePrice": { "type": "number" },
+        "discountPercent": { "type": "number" },
+        "stock": { "type": "number" },
+        "sku": { "type": "string" },
+        "weightKg": { "type": "number" },
+        "images": { "type": "array" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "DRAFT", "PENDING_APPROVAL", "REJECTED", "OUT_OF_STOCK"] },
+        "isFeatured": { "type": "boolean" },
+        "isBestSeller": { "type": "boolean" },
+        "rating": { "type": "number" },
+        "reviewsCount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "vendorId", "name", "slug", "regularPrice", "salePrice", "category"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer purchase order with UTM tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "customerId": { "type": "string" },
+        "vendorIds": { "type": "array" },
+        "items": { "type": "array" },
+        "totalAmount": { "type": "number" },
+        "shippingAddress": { "type": "object" },
+        "status": { "type": "string", "enum": ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"] },
+        "paymentStatus": { "type": "string", "enum": ["PENDING", "PAID", "FAILED", "REFUNDED"] },
+        "utmSource": { "type": "string" },
+        "utmMedium": { "type": "string" },
+        "utmCampaign": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "orderNumber", "totalAmount", "shippingAddress", "status"]
+    },
+    "Withdrawal": {
+      "title": "Withdrawal",
+      "description": "Vendor fund withdrawal request (M-Pesa, e-Mola, Bank)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "storeName": { "type": "string" },
+        "amount": { "type": "number" },
+        "method": { "type": "string", "enum": ["MPESA", "EMOLA", "BANK"] },
+        "accountDetails": { "type": "object" },
+        "status": { "type": "string", "enum": ["PENDING", "IN_REVIEW", "APPROVED", "PAID", "REJECTED"] },
+        "notes": { "type": "string" },
+        "requestedAt": { "type": "string" }
+      },
+      "required": ["id", "vendorId", "amount", "method", "status", "requestedAt"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable security log of administrative actions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "actorId": { "type": "string" },
+        "actorEmail": { "type": "string" },
+        "actorRole": { "type": "string" },
+        "action": { "type": "string" },
+        "targetType": { "type": "string" },
+        "targetId": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "actorEmail", "action", "details", "timestamp"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global marketplace settings and branding",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "platformName": { "type": "string" },
+        "platformLogo": { "type": "string" },
+        "commissionRate": { "type": "number" },
+        "soundAlertEnabled": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "platformName", "commissionRate"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and credentials"
+    },
+    "/stores/{storeId}": {
+      "schema": "Store",
+      "description": "Vendor stores"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Catalog products"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Marketplace purchase orders"
+    },
+    "/withdrawals/{withdrawalId}": {
+      "schema": "Withdrawal",
+      "description": "Vendor payouts and withdrawals"
+    },
+    "/auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Admin action audit logs"
+    },
+    "/settings/{settingId}": {
+      "schema": "Settings",
+      "description": "Global system configurations"
+    }
+  }
+}

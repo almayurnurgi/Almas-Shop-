@@ -1,0 +1,7 @@
+{
+  "name": "ALMAS-SHOP",
+  "description": "EASY SOLUTION - Marketplace B2C de Moçambique. Mais que uma loja, é a sua solução!",
+  "requestFramePermissions": ["notifications"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
