@@ -123,3 +123,36 @@ export async function seedCollectionIfEmpty<T extends { id: string }>(
     console.warn(`[Firestore] Seeding skipped/failed for ${collectionName}:`, error);
   }
 }
+
+/**
+ * Completely wipes all documents in a Firestore collection (with optional exclusions).
+ * Used for full production reset.
+ */
+export async function clearFirestoreCollection(
+  collectionName: string,
+  excludeIds: string[] = []
+): Promise<number> {
+  try {
+    const colRef = collection(db, collectionName);
+    const snapshot = await getDocs(colRef);
+    if (snapshot.empty) return 0;
+
+    const batch = writeBatch(db);
+    let count = 0;
+    for (const d of snapshot.docs) {
+      if (!excludeIds.includes(d.id)) {
+        batch.delete(d.ref);
+        count++;
+      }
+    }
+
+    if (count > 0) {
+      await batch.commit();
+      console.log(`[Firestore] Cleared ${count} documents from ${collectionName}`);
+    }
+    return count;
+  } catch (error) {
+    console.warn(`[Firestore] Error clearing collection ${collectionName}:`, error);
+    return 0;
+  }
+}

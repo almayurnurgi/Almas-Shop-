@@ -124,6 +124,7 @@ export const AdminMasterPanel: React.FC<AdminMasterPanelProps> = ({ onLogout }) 
   const [isAddOrderModalOpen, setIsAddOrderModalOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [showResetConfirmModal, setShowResetConfirmModal] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   // Add Order Form State
   const [newOrderCustomerName, setNewOrderCustomerName] = useState('');
@@ -2316,13 +2317,26 @@ export const AdminMasterPanel: React.FC<AdminMasterPanelProps> = ({ onLogout }) 
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  resetProductionData();
-                  setShowResetConfirmModal(false);
+                disabled={isResetting}
+                onClick={async () => {
+                  setIsResetting(true);
+                  try {
+                    await resetProductionData();
+                  } finally {
+                    setIsResetting(false);
+                    setShowResetConfirmModal(false);
+                  }
                 }}
-                className="text-xs bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-6 rounded-full transition shadow-xs cursor-pointer"
+                className="text-xs bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold py-2.5 px-6 rounded-full transition shadow-xs cursor-pointer flex items-center gap-1.5"
               >
-                Sim, Zerar Dados Agora
+                {isResetting ? (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Limpando Firebase...</span>
+                  </>
+                ) : (
+                  <span>Sim, Zerar Dados Agora</span>
+                )}
               </button>
             </div>
           </div>

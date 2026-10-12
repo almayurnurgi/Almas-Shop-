@@ -41,7 +41,8 @@ import {
   saveDocToFirestore,
   deleteDocFromFirestore,
   subscribeToFirestoreCollection,
-  seedCollectionIfEmpty
+  seedCollectionIfEmpty,
+  clearFirestoreCollection
 } from '../lib/firestoreSync';
 
 interface AppContextType {
@@ -97,7 +98,7 @@ interface AppContextType {
   deleteOrder: (orderId: string) => void;
   editOrder: (orderId: string, updates: Partial<Order>) => void;
   adminAddOrder: (orderData: Partial<Order>) => Order;
-  resetProductionData: () => void;
+  resetProductionData: () => Promise<void>;
 
   // Wallets & Withdrawals
   wallets: Record<string, Wallet>;
@@ -415,50 +416,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     seedCollectionIfEmpty('auditLogs', INITIAL_AUDIT_LOGS);
     seedCollectionIfEmpty('orders', INITIAL_ORDERS);
 
-    // Real-time synchronization from Firestore with resilient local-merge
+    // Real-time synchronization directly from Firestore
     const unsubProducts = subscribeToFirestoreCollection<Product>('products', (remoteProds) => {
       if (remoteProds) {
-        setProducts((prev) => {
-          const map = new Map<string, Product>();
-          remoteProds.forEach((p) => map.set(p.id, p));
-          prev.forEach((p) => {
-            if (!map.has(p.id)) {
-              map.set(p.id, p);
-              saveDocToFirestore('products', p.id, p);
-            }
-          });
-          return Array.from(map.values());
-        });
+        setProducts(remoteProds);
       }
     });
 
     const unsubStores = subscribeToFirestoreCollection<Store>('stores', (remoteStores) => {
       if (remoteStores) {
-        setStores((prev) => {
-          const map = new Map<string, Store>();
-          remoteStores.forEach((s) => map.set(s.id, s));
-          prev.forEach((s) => {
-            if (!map.has(s.id)) {
-              map.set(s.id, s);
-              saveDocToFirestore('stores', s.id, s);
-            }
-          });
-          return Array.from(map.values());
-        });
+        setStores(remoteStores);
       }
     });
 
     const unsubUsers = subscribeToFirestoreCollection<User>('users', (remoteUsers) => {
       if (remoteUsers) {
-        setUsers((prev) => {
+        setUsers(() => {
           const map = new Map<string, User>();
           remoteUsers.forEach((u) => map.set(u.id, u));
-          prev.forEach((u) => {
-            if (!map.has(u.id)) {
-              map.set(u.id, u);
-              saveDocToFirestore('users', u.id, u);
-            }
-          });
           // Ensure master admin is always present
           if (!map.has('user_admin_1')) {
             map.set('user_admin_1', INITIAL_USERS[0]);
@@ -470,33 +445,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const unsubOrders = subscribeToFirestoreCollection<Order>('orders', (remoteOrders) => {
       if (remoteOrders) {
-        setOrders((prev) => {
-          const map = new Map<string, Order>();
-          remoteOrders.forEach((o) => map.set(o.id, o));
-          prev.forEach((o) => {
-            if (!map.has(o.id)) {
-              map.set(o.id, o);
-              saveDocToFirestore('orders', o.id, o);
-            }
-          });
-          return Array.from(map.values());
-        });
+        setOrders(remoteOrders);
       }
     });
 
     const unsubWithdrawals = subscribeToFirestoreCollection<Withdrawal>('withdrawals', (remoteWiths) => {
       if (remoteWiths) {
-        setWithdrawals((prev) => {
-          const map = new Map<string, Withdrawal>();
-          remoteWiths.forEach((w) => map.set(w.id, w));
-          prev.forEach((w) => {
-            if (!map.has(w.id)) {
-              map.set(w.id, w);
-              saveDocToFirestore('withdrawals', w.id, w);
-            }
-          });
-          return Array.from(map.values());
-        });
+        setWithdrawals(remoteWiths);
       }
     });
 
@@ -1428,63 +1383,80 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newOrder;
   };
 
-  const resetProductionData = () => {
-    // 1. Limpar todos os pedidos
-    setOrders([]);
-    orders.forEach((o) => deleteDocFromFirestore('orders', o.id));
+  const resetProductionData = async () => {
+    try {
+      // 1. Limpar todas as coleções de teste diretamente no Firebase Firestore
+      await clearFirestoreCollection('orders');
+      await clearFirestoreCollection('products');
+      await clearFirestoreCollection('stores');
+      await clearFirestoreCollection('withdrawals');
+      await clearFirestoreCollection('wallets');
+      // Limpar todos os utilizadores de teste, preservando exclusivamente a conta mestre do Super Admin
+      await clearFirestoreCollection('users', ['user_admin_1']);
 
-    // 2. Limpar cadastros de teste - preservar unicamente a conta Mestre do Super Admin
-    const superAdminAccount: User = {
-      id: 'user_admin_1',
-      name: 'Chefe Almayur Nurgi',
-      email: 'almayurnurgi563@gmail.com',
-      phone: '843456786',
-      role: 'SUPER_ADMIN',
-      password: 'Te@momae',
-      adminLevel: 'SUPER_ADMIN',
-      isBanned: false,
-      twoFactorEnabled: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    setUsers([superAdminAccount]);
-    saveDocToFirestore('users', superAdminAccount.id, superAdminAccount);
+      // 2. Garantir que a conta mestre do Super Admin está salva no Firestore
+      const superAdminAccount: User = {
+        id: 'user_admin_1',
+        name: 'Chefe Almayur Nurgi',
+        email: 'almayurnurgi563@gmail.com',
+        phone: '843456786',
+        role: 'SUPER_ADMIN',
+        password: 'Te@momae',
+        adminLevel: 'SUPER_ADMIN',
+        isBanned: false,
+        twoFactorEnabled: false,
+        createdAt: '2026-09-01T08:00:00Z',
+        updatedAt: new Date().toISOString()
+      };
+      await saveDocToFirestore('users', superAdminAccount.id, superAdminAccount);
 
-    // 4. Limpar produtos e lojas de teste
-    products.forEach((p) => deleteDocFromFirestore('products', p.id));
-    setProducts([]);
-    stores.forEach((s) => deleteDocFromFirestore('stores', s.id));
-    setStores([]);
+      // 3. Atualizar estados locais do React
+      setOrders([]);
+      setProducts([]);
+      setStores([]);
+      setWithdrawals([]);
+      setWallets({});
+      setCart([]);
+      setUsers([superAdminAccount]);
 
-    // 5. Limpar carrinho e logs residuais
-    setCart([]);
-    localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
-    localStorage.removeItem(STORAGE_KEYS.STORES);
-    localStorage.removeItem(STORAGE_KEYS.ORDERS);
-    localStorage.removeItem(STORAGE_KEYS.CART);
-    localStorage.removeItem(STORAGE_KEYS.WALLETS);
-    localStorage.removeItem(STORAGE_KEYS.WITHDRAWALS);
+      // 4. Limpar cache local do localStorage
+      localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
+      localStorage.removeItem(STORAGE_KEYS.STORES);
+      localStorage.removeItem(STORAGE_KEYS.ORDERS);
+      localStorage.removeItem(STORAGE_KEYS.CART);
+      localStorage.removeItem(STORAGE_KEYS.WALLETS);
+      localStorage.removeItem(STORAGE_KEYS.WITHDRAWALS);
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify([superAdminAccount]));
 
-    const now = new Date().toISOString();
-    const newLog: AuditLog = {
-      id: 'log_' + Date.now(),
-      actorId: currentUser?.id || 'admin',
-      actorEmail: 'almayurnurgi563@gmail.com',
-      authorEmail: 'almayurnurgi563@gmail.com',
-      actorRole: 'SUPER_ADMIN',
-      action: 'PRODUCTION_RESET',
-      targetType: 'SYSTEM',
-      targetId: 'all',
-      details: 'Base de dados zerada para produção limpa: todos os produtos, lojas, pedidos, levantamentos e usuários de teste foram removidos, mantendo exclusivamente a conta do Super Admin.',
-      timestamp: now,
-      createdAt: now
-    };
-    setAuditLogs((prev) => [newLog, ...prev]);
-    saveDocToFirestore('auditLogs', newLog.id, newLog);
-    setFlashBanner({
-      message: 'Painel totalmente zerado para produção! 0 produtos de teste, 0 pedidos e 0 contas de teste. Pronto para cadastros reais.',
-      type: 'success'
-    });
+      // 5. Registrar log de auditoria oficial
+      const now = new Date().toISOString();
+      const newLog: AuditLog = {
+        id: 'log_' + Date.now(),
+        actorId: currentUser?.id || 'user_admin_1',
+        actorEmail: 'almayurnurgi563@gmail.com',
+        authorEmail: 'almayurnurgi563@gmail.com',
+        actorRole: 'SUPER_ADMIN',
+        action: 'PRODUCTION_RESET',
+        targetType: 'SYSTEM',
+        targetId: 'all',
+        details: 'Base de dados zerada para produção no Firebase Firestore: todos os produtos, lojas, pedidos, levantamentos e usuários de teste foram removidos, mantendo exclusivamente a conta do Super Admin.',
+        timestamp: now,
+        createdAt: now
+      };
+      setAuditLogs((prev) => [newLog, ...prev]);
+      saveDocToFirestore('auditLogs', newLog.id, newLog);
+
+      setFlashBanner({
+        message: 'Base de dados zerada com sucesso no Firebase Firestore! 0 produtos, 0 pedidos e 0 contas de teste. Pronto para o lançamento.',
+        type: 'success'
+      });
+    } catch (err) {
+      console.error('Erro ao zerar dados de produção no Firebase:', err);
+      setFlashBanner({
+        message: 'Aviso: Houve um erro ao zerar alguns dados no Firebase. Verifique a conexão.',
+        type: 'error'
+      });
+    }
   };
 
   // Withdrawals
